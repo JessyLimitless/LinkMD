@@ -1,0 +1,28 @@
+'use strict';
+const AppState = {
+  view: 'workspace',
+  currentProjectId: null,
+  projects: [],
+  documents: [],
+  selectedDocIds: new Set(),
+  sortBy: 'filename',
+  sortOrder: 'asc',
+  filterTag: null,
+  searchQuery: '',
+  searchResults: [],
+  searchHistory: [],
+  viewingDoc: null,
+  currentFolderId: null,
+  folderTree: [],
+  expandedFolders: new Set(),
+  editingDoc: null,
+  editorDirty: false,
+  universeActive: false,
+  exportOpen: false,
+  tags: [],
+  sidebarOpen: true,
+  loading: { upload: false, search: false, export: false },
+  listeners: [],
+  onChange(fn) { this.listeners.push(fn); },
+  emit() { this.listeners.forEach(fn => fn(this)); }
+};

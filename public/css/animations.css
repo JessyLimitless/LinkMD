@@ -1,0 +1,139 @@
+/* ===== Toast Redesign ===== */
+.toast-container {
+  position: fixed;
+  top: 70px;
+  right: 20px;
+  z-index: 500;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.toast {
+  padding: 12px 16px 12px 20px;
+  border-radius: var(--radius-md);
+  font-size: 0.85rem;
+  font-weight: 500;
+  background: white;
+  color: var(--gray-800);
+  box-shadow: var(--shadow-lg);
+  border-left: 4px solid var(--gray-300);
+  animation: toastSlideIn var(--duration-normal) var(--ease-spring), toastFadeOut 0.3s ease 2.7s forwards;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 360px;
+}
+.toast.success { border-left-color: var(--green); }
+.toast.error { border-left-color: var(--red); }
+.toast.info { border-left-color: var(--brand); }
+
+@keyframes toastSlideIn {
+  from { transform: translateX(100%) scale(0.95); opacity: 0; }
+  to { transform: translateX(0) scale(1); opacity: 1; }
+}
+@keyframes toastFadeOut {
+  to { opacity: 0; transform: translateX(30px); }
+}
+
+/* ===== Loading Spinner ===== */
+.loading-spinner {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--gray-200);
+  border-top-color: var(--brand);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.loading-overlay {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(255,255,255,0.85);
+  backdrop-filter: blur(2px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+}
+
+/* ===== Fade In ===== */
+.fade-in { animation: fadeIn var(--duration-normal) var(--ease-out); }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+/* ===== Card Stagger Animation ===== */
+.card-grid .doc-card {
+  animation: cardStagger var(--duration-normal) var(--ease-out) both;
+}
+.card-grid .doc-card:nth-child(1)  { animation-delay: 0ms; }
+.card-grid .doc-card:nth-child(2)  { animation-delay: 30ms; }
+.card-grid .doc-card:nth-child(3)  { animation-delay: 60ms; }
+.card-grid .doc-card:nth-child(4)  { animation-delay: 90ms; }
+.card-grid .doc-card:nth-child(5)  { animation-delay: 120ms; }
+.card-grid .doc-card:nth-child(6)  { animation-delay: 150ms; }
+.card-grid .doc-card:nth-child(7)  { animation-delay: 180ms; }
+.card-grid .doc-card:nth-child(8)  { animation-delay: 210ms; }
+.card-grid .doc-card:nth-child(9)  { animation-delay: 240ms; }
+.card-grid .doc-card:nth-child(10) { animation-delay: 270ms; }
+.card-grid .doc-card:nth-child(11) { animation-delay: 300ms; }
+.card-grid .doc-card:nth-child(12) { animation-delay: 330ms; }
+.card-grid .doc-card:nth-child(n+13) { animation-delay: 350ms; }
+
+@keyframes cardStagger {
+  from { opacity: 0; transform: translateY(12px) scale(0.97); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* ===== Search Result Stagger ===== */
+.search-result-item {
+  animation: cardStagger var(--duration-normal) var(--ease-out) both;
+}
+.search-result-item:nth-child(1)  { animation-delay: 0ms; }
+.search-result-item:nth-child(2)  { animation-delay: 40ms; }
+.search-result-item:nth-child(3)  { animation-delay: 80ms; }
+.search-result-item:nth-child(4)  { animation-delay: 120ms; }
+.search-result-item:nth-child(5)  { animation-delay: 160ms; }
+.search-result-item:nth-child(n+6) { animation-delay: 200ms; }
+
+/* ===== Modal Entrance ===== */
+.modal-overlay.open {
+  animation: overlayIn var(--duration-normal) var(--ease-out);
+}
+.modal-overlay.open .modal {
+  animation: modalIn var(--duration-normal) var(--ease-spring);
+}
+@keyframes overlayIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes modalIn {
+  from { opacity: 0; transform: scale(0.95) translateY(10px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+/* ===== Export Panel Entrance ===== */
+.export-panel.open {
+  animation: panelSlideUp var(--duration-slow) var(--ease-out);
+}
+@keyframes panelSlideUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+/* ===== Skeleton Shimmer ===== */
+.skeleton {
+  background: linear-gradient(90deg, var(--gray-100) 25%, var(--gray-200) 50%, var(--gray-100) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite ease-in-out;
+  border-radius: var(--radius-sm);
+}
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* ===== Viewer Fade In ===== */
+.viewer.fade-in {
+  animation: fadeIn var(--duration-slow) var(--ease-out);
+}

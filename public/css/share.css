@@ -1,0 +1,89 @@
+/* ===== Shared Page ===== */
+.shared-page {
+  min-height: 100vh;
+  background: var(--gray-50);
+  font-family: var(--font-sans);
+}
+
+.shared-header {
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border-bottom: 1px solid var(--gray-200);
+  padding: var(--sp-3) var(--sp-6);
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+}
+.shared-header .logo {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--brand);
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+}
+.shared-header .shared-by {
+  font-size: 0.82rem;
+  color: var(--gray-400);
+  margin-left: auto;
+}
+
+.shared-content {
+  max-width: 860px;
+  margin: var(--sp-6) auto;
+  padding: 0 var(--sp-6);
+}
+
+.shared-doc-title {
+  font-size: 0.85rem;
+  color: var(--gray-500);
+  margin-bottom: var(--sp-4);
+}
+
+.shared-doc-body {
+  background: white;
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius-lg);
+  padding: var(--sp-8);
+  box-shadow: var(--shadow-sm);
+}
+
+.shared-actions {
+  display: flex;
+  gap: var(--sp-2);
+  margin-top: var(--sp-4);
+}
+
+.shared-expired {
+  text-align: center;
+  padding: var(--sp-16) var(--sp-5);
+  color: var(--gray-400);
+}
+.shared-expired-icon {
+  margin-bottom: var(--sp-3);
+  display: flex;
+  justify-content: center;
+  color: var(--gray-300);
+}
+
+/* Project cards in shared view */
+.shared-project-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: var(--sp-3);
+  margin-top: var(--sp-4);
+}
+.shared-project-card {
+  background: white;
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius-md);
+  padding: var(--sp-4);
+  cursor: pointer;
+  transition: all var(--transition);
+}
+.shared-project-card:hover {
+  border-color: var(--brand-200);
+  box-shadow: var(--shadow-card-hover);
+  transform: translateY(-2px);
+}

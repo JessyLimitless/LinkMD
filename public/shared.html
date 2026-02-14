@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LinkMD — Shared</title>
+  <link rel="stylesheet" href="/css/variables.css">
+  <link rel="stylesheet" href="/css/viewer.css">
+  <link rel="stylesheet" href="/css/share.css">
+  <link rel="stylesheet" href="/css/layout.css">
+  <link rel="stylesheet" href="/css/animations.css">
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body style="overflow:auto">
+  <div class="shared-page">
+    <div class="shared-header">
+      <span class="logo"><i data-lucide="link" style="width:18px;height:18px"></i> LinkMD</span>
+      <span class="shared-by">Shared Document</span>
+    </div>
+    <div class="shared-content" id="shared-content">
+      <div style="text-align:center;padding:60px;color:#A1A1AA">
+        <div class="loading-spinner" style="width:30px;height:30px;border-width:3px;margin:0 auto 12px"></div>
+        <div>Loading...</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const API = window.location.origin + '/api';
+    const token = window.location.pathname.split('/s/')[1];
+
+    async function loadShared() {
+      try {
+        const res = await fetch(`${API}/shared/${token}`);
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error?.message || 'Error');
+
+        const container = document.getElementById('shared-content');
+
+        if (data.type === 'document') {
+          const doc = data.data;
+          const rendered = marked.parse(doc.content || '');
+          const esc = s => s == null ? '' : String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+          container.innerHTML = `
+            <div class="shared-doc-title">${esc(doc.projectName)} / ${esc(doc.filename)}</div>
+            <div class="shared-doc-body">
+              <div class="md-render">${rendered}</div>
+            </div>
+            <div class="shared-actions">
+              <button class="btn btn-secondary" onclick="copyMD()"><i data-lucide="copy" style="width:14px;height:14px"></i> MD 복사</button>
+              <button class="btn btn-primary" onclick="downloadMD()"><i data-lucide="download" style="width:14px;height:14px"></i> 다운로드</button>
+            </div>`;
+          document.title = `${doc.title || doc.filename} — LinkMD`;
+          window._sharedDoc = doc;
+          lucide.createIcons();
+        } else if (data.type === 'project') {
+          const proj = data.data;
+          container.innerHTML = `
+            <h2 style="margin-bottom:16px;display:flex;align-items:center;gap:8px"><i data-lucide="folder" style="width:22px;height:22px;color:var(--brand)"></i> ${proj.name}</h2>
+            <p style="color:var(--gray-500);margin-bottom:16px">${proj.description || ''} — ${proj.doc_count || 0}개 문서</p>
+            <div class="shared-project-cards">
+              ${(proj.documents || []).map(d => `
+                <div class="shared-project-card" onclick="loadSharedDoc('${d.id}')">
+                  <div style="font-weight:600;margin-bottom:4px;display:flex;align-items:center;gap:6px"><i data-lucide="file-text" style="width:14px;height:14px;color:var(--gray-400)"></i> ${d.title || d.filename}</div>
+                  <div style="font-size:0.78rem;color:var(--gray-400);font-family:var(--font-mono)">${d.filename}</div>
+                  <div style="font-size:0.75rem;color:var(--gray-400);margin-top:6px">H:${d.heading_count||0} C:${d.code_block_count||0}</div>
+                </div>
+              `).join('')}
+            </div>`;
+          document.title = `${proj.name} — LinkMD`;
+          lucide.createIcons();
+        }
+      } catch (e) {
+        document.getElementById('shared-content').innerHTML = `
+          <div class="shared-expired">
+            <div class="shared-expired-icon"><i data-lucide="link-2-off" style="width:48px;height:48px"></i></div>
+            <h3>${e.message}</h3>
+            <p style="margin-top:8px;font-size:0.9rem;color:var(--gray-400)">이 공유 링크는 만료되었거나 존재하지 않습니다.</p>
+          </div>`;
+        lucide.createIcons();
+      }
+    }
+
+    async function loadSharedDoc(docId) {
+      try {
+        const res = await fetch(`${API}/docs/${docId}`);
+        const doc = await res.json();
+        const rendered = marked.parse(doc.content || '');
+        document.getElementById('shared-content').innerHTML = `
+          <div class="shared-doc-title" style="cursor:pointer;display:flex;align-items:center;gap:6px" onclick="loadShared()"><i data-lucide="arrow-left" style="width:14px;height:14px"></i> 돌아가기</div>
+          <div class="shared-doc-body"><div class="md-render">${rendered}</div></div>`;
+        lucide.createIcons();
+      } catch {}
+    }
+
+    function copyMD() {
+      if (window._sharedDoc) {
+        navigator.clipboard.writeText(window._sharedDoc.content);
+        alert('MD 내용이 복사되었습니다');
+      }
+    }
+
+    function downloadMD() {
+      if (window._sharedDoc) {
+        const blob = new Blob([window._sharedDoc.content], { type: 'text/markdown' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = window._sharedDoc.filename;
+        a.click();
+      }
+    }
+
+    loadShared();
+    lucide.createIcons();
+  </script>
+</body>
+</html>
