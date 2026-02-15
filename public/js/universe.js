@@ -722,6 +722,7 @@ function _renderDetailContent(doc) {
     ${mdPreview ? `<div class="udetail-preview">${mdPreview}</div>` : '<div class="udetail-preview udetail-empty">No content preview</div>'}
     <div class="udetail-actions">
       <button class="udetail-action-btn primary" onclick="_goToViewer(${doc.id})">📄 문서 열기</button>
+      <button class="udetail-action-btn" onclick="_universeAutoTag(${doc.id})">✨ 태그 자동 추출</button>
       <button class="udetail-action-btn" onclick="_filterByConnected('doc-${doc.id}')">🔗 연결 문서 보기</button>
     </div>
   `;
@@ -736,6 +737,10 @@ function _closeDetail() {
 function _goToViewer(docId) {
   closeUniverse();
   setTimeout(() => openViewer(docId), 200);
+}
+
+function _universeAutoTag(docId) {
+  showAutoTagModal(docId);
 }
 
 /* ── Apply Node Visuals (hover + filter opacity) ── */

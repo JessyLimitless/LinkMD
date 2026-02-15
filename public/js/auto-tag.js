@@ -100,9 +100,21 @@ async function applyAutoTags(docId) {
     });
     closeModal();
     toast(`${result.applied.length}개 태그가 적용되었습니다`, 'success');
-    await loadTags();
-    await loadDocuments(AppState.currentProjectId);
-    await loadStats();
+
+    if (AppState.universeActive && typeof loadUniverseData === 'function') {
+      await loadUniverseData();
+      if (_universeDetailDoc && String(_universeDetailDoc.id) === String(docId)) {
+        try {
+          const freshDoc = await api(`/docs/${docId}`);
+          _universeDetailDoc = freshDoc;
+          _renderDetailContent(freshDoc);
+        } catch {}
+      }
+    } else {
+      await loadTags();
+      await loadDocuments(AppState.currentProjectId);
+      await loadStats();
+    }
   } catch {
     if (btn) { btn.disabled = false; btn.textContent = '선택 태그 적용'; }
   }
