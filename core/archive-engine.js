@@ -140,10 +140,33 @@ class ArchiveEngine {
        analysis.hasFrontmatter ? 1 : 0, originalPath, folderId || null]
     );
 
+    // Auto-tag: extract and apply high-confidence tags (>= 0.8)
+    const autoTags = [];
+    try {
+      const suggestions = tagExtractor.extractTags(content, filename);
+      const highConfidence = suggestions.filter(s => s.confidence >= 0.8);
+      for (const s of highConfidence) {
+        const tag = await this.createTag(s.name, s.color);
+        await this.addTagToDocument(id, tag.id);
+        autoTags.push({ name: tag.name, color: tag.color, source: s.source, confidence: s.confidence });
+      }
+      if (autoTags.length > 0) {
+        const keywords = autoTags.map(t => t.name).join(', ');
+        await this.db.run(
+          'UPDATE documents SET ai_keywords = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?',
+          [keywords, id]
+        );
+      }
+    } catch (e) {
+      // Auto-tag failure should not block archiving
+      console.error('[auto-tag] Failed for', filename, e.message);
+    }
+
     return {
       id, filename, title: analysis.title, fileSize: buffer.length,
       headingCount: analysis.headingCount, codeBlockCount: analysis.codeBlockCount,
-      tableCount: analysis.tableCount, lineCount: analysis.lineCount
+      tableCount: analysis.tableCount, lineCount: analysis.lineCount,
+      autoTags
     };
   }
 

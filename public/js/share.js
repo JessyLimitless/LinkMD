@@ -46,7 +46,7 @@ async function createShareLink(type, id) {
     const data = await api(`/share/${type === 'document' ? 'doc' : 'project'}/${id}`, {
       method: 'POST', body: JSON.stringify({ expiresIn })
     });
-    const url = data.shareUrl || '';
+    const url = window.location.origin + '/s/' + data.token;
     document.getElementById('share-result').innerHTML = `
       <div class="share-url-box">
         <input id="share-url" value="${escapeAttr(url)}" readonly onclick="this.select()">

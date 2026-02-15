@@ -27,7 +27,9 @@ async function handleFiles(fileList) {
   toast('업로드 중...', 'info');
   try {
     const data = await apiUpload(`/projects/${AppState.currentProjectId}/upload`, formData);
-    toast(`${data.totalFiles}개 파일이 아카이빙되었습니다`, 'success');
+    const totalAutoTags = (data.archived || []).reduce((sum, d) => sum + (d.autoTags?.length || 0), 0);
+    const tagMsg = totalAutoTags > 0 ? ` (태그 ${totalAutoTags}개 자동 적용)` : '';
+    toast(`${data.totalFiles}개 파일이 아카이빙되었습니다${tagMsg}`, 'success');
     await loadDocuments(AppState.currentProjectId);
     await loadProjects();
     renderProjectList();
