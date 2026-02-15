@@ -124,21 +124,15 @@ npm install
 
 ### 환경 설정
 
-`.env` 파일을 프로젝트 루트에 생성:
+`.env` 파일을 프로젝트 루트에 생성 (`.env.example` 참고):
 
 ```env
 PORT=3500
+NODE_ENV=production
 DB_PATH=./data/linkmd.db
 STORAGE_PATH=./storage
-SHARE_BASE_URL=http://localhost:3500
-PANDOC_PATH=/usr/local/bin/pandoc
+PANDOC_PATH=/usr/local/bin/pandoc   # Docker에서는 불필요 (PATH에 포함됨)
 ```
-
-> **배포 환경**: `DB_PATH`와 `STORAGE_PATH`를 앱 디렉토리 바깥의 절대경로로 설정하면 재배포 시에도 데이터가 보존됩니다.
-> ```env
-> DB_PATH=/var/linkmd/data/linkmd.db
-> STORAGE_PATH=/var/linkmd/storage
-> ```
 
 ### 실행
 
@@ -206,6 +200,52 @@ npm run create-templates  # Pandoc 템플릿 생성
 | `document_tags` | 문서-태그 연결 |
 | `shared_links` | 공유 링크 (토큰, 만료일) |
 | `search_history` | 검색 히스토리 |
+
+## Docker 배포
+
+`Dockerfile`과 `docker-compose.yml`이 포함되어 있습니다.
+
+```bash
+# 로컬 Docker 실행
+docker-compose up -d
+
+# 또는 Dockerfile 단독
+docker build -t linkmd .
+docker run -d -p 3500:3500 -v linkmd-data:/app/data -v linkmd-storage:/app/storage linkmd
+```
+
+### Dokploy (Cloud5) 배포
+
+GitHub 리포 연결 후 자동 배포됩니다. Dokploy 대시보드에서:
+
+1. **Docker Compose** 타입으로 서비스 생성
+2. GitHub 리포 연결
+3. 도메인 설정 (Domains 탭)
+4. Deploy
+
+> `docker-compose.yml`에 볼륨, 포트, 환경변수가 선언되어 있어 추가 설정이 불필요합니다.
+
+---
+
+## 미해결 이슈 (TODO)
+
+### 배포/인프라
+
+- [ ] **Dokploy 재배포 시 데이터 초기화**: `docker-compose.yml`에 named volume(`linkmd-data`, `linkmd-storage`)을 선언했으나, Dokploy에서 Application 타입 → Docker Compose 타입으로 전환해야 볼륨이 자동 적용됨. 현재 Application(Nixpacks) 타입으로 배포 중이라 재배포마다 DB와 파일이 날아감. Dokploy 대시보드에서 서비스 타입 변경 필요.
+
+- [ ] **Dokploy Docker Compose 타입 전환 검증**: `docker-compose.yml`의 `dokploy-network` 연결, named volume 자동 생성이 실제 Dokploy 환경에서 정상 동작하는지 검증 필요.
+
+### 공유 기능
+
+- [ ] **공유 링크 배포 환경 검증**: `share.js`에서 `window.location.origin + '/s/' + data.token`으로 URL을 생성하도록 수정했으나, 배포 도메인에서 실제로 올바른 URL이 생성되는지 검증 필요.
+
+- [ ] **shared.html 로딩 안정성**: CDN 버전 고정(`marked@15`, `lucide@0.460.0`)과 에러 핸들링을 추가했으나, 배포 환경에서 공유 페이지가 정상 렌더링되는지 확인 필요.
+
+### 모바일
+
+- [ ] **모바일 반응형 실기기 테스트**: CSS 미디어 쿼리(480px/768px)와 JS(햄버거 사이드바, 롱프레스 컨텍스트 메뉴, 에디터 FAB) 구현 완료. 실제 모바일 기기에서 전체 기능 동작 검증 필요.
+
+---
 
 ## 라이선스
 
