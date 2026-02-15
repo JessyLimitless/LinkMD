@@ -8,6 +8,7 @@ const matter = require('gray-matter');
 const AdmZip = require('adm-zip');
 const { createError } = require('./errors');
 const mdProcessor = require('./md-processor');
+const tagExtractor = require('./tag-extractor');
 const FolderEngine = require('./folder-engine');
 
 class ArchiveEngine {
@@ -465,6 +466,112 @@ class ArchiveEngine {
        ORDER BY t.name`,
       [docId]
     );
+  }
+
+  // ── Document Split & Auto-Tag ──
+
+  async getHeadingStats(docId) {
+    const doc = await this.getDocument(docId);
+    let headingTree;
+    try {
+      headingTree = JSON.parse(doc.heading_tree || '[]');
+    } catch {
+      headingTree = [];
+    }
+
+    const stats = {};
+    for (let level = 1; level <= 6; level++) {
+      const count = headingTree.filter(h => h.level === level).length;
+      if (count > 0) stats[level] = count;
+    }
+    return { docId, title: doc.title, stats };
+  }
+
+  async splitDocument(docId, level, keepOriginal = true) {
+    const doc = await this.getDocument(docId);
+    const chunks = mdProcessor.splitByHeading(doc.content, level);
+
+    if (chunks.length === 0) throw createError('DOC_SPLIT_NO_HEADINGS');
+    if (chunks.length < 2) throw createError('DOC_SPLIT_TOO_FEW');
+
+    const originalTags = await this.getDocumentTags(docId);
+    const created = [];
+
+    for (let i = 0; i < chunks.length; i++) {
+      const chunk = chunks[i];
+      // Build content with the heading restored
+      const mdContent = chunk.title === '서문'
+        ? chunk.content
+        : `${'#'.repeat(level)} ${chunk.title}\n\n${chunk.content}`;
+
+      // Generate filename
+      const baseName = doc.filename.replace(/\.md$/i, '');
+      const safeTitle = chunk.title.replace(/[<>:"/\\|?*]/g, '_').slice(0, 50).trim();
+      let filename = `${baseName}_${String(i + 1).padStart(2, '0')}_${safeTitle}.md`;
+
+      // Ensure unique filename
+      let counter = 1;
+      while (true) {
+        const dup = await this.db.get(
+          'SELECT id FROM documents WHERE project_id = ? AND folder_id IS ? AND filename = ?',
+          [doc.project_id, doc.folder_id || null, filename]
+        );
+        if (!dup) break;
+        filename = `${baseName}_${String(i + 1).padStart(2, '0')}_${safeTitle} (${counter}).md`;
+        counter++;
+      }
+
+      const buffer = Buffer.from(mdContent, 'utf-8');
+      const result = await this._archiveSingleMD(doc.project_id, filename, buffer, doc.folder_id || null);
+
+      // Copy original tags
+      for (const tag of originalTags) {
+        await this.addTagToDocument(result.id, tag.id);
+      }
+
+      created.push(result);
+    }
+
+    if (!keepOriginal) {
+      await this.deleteDocument(docId);
+    }
+
+    await this._updateProjectDocCount(doc.project_id);
+
+    return { originalId: docId, kept: keepOriginal, created };
+  }
+
+  async suggestTags(docId) {
+    const doc = await this.getDocument(docId);
+    const suggestions = tagExtractor.extractTags(doc.content, doc.filename);
+    const existingTags = await this.getDocumentTags(docId);
+    const existingNames = new Set(existingTags.map(t => t.name.toLowerCase()));
+
+    return suggestions.map(s => ({
+      ...s,
+      alreadyApplied: existingNames.has(s.name.toLowerCase())
+    }));
+  }
+
+  async applyTags(docId, tags) {
+    await this.getDocument(docId);
+    const applied = [];
+
+    for (const { name, color } of tags) {
+      const tag = await this.createTag(name, color || '#6B7280');
+      await this.addTagToDocument(docId, tag.id);
+      applied.push(tag);
+    }
+
+    // Update ai_keywords column
+    const allTags = await this.getDocumentTags(docId);
+    const keywords = allTags.map(t => t.name).join(', ');
+    await this.db.run(
+      'UPDATE documents SET ai_keywords = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?',
+      [keywords, docId]
+    );
+
+    return { docId, applied, totalTags: allTags.length };
   }
 
   // ── Stats ──

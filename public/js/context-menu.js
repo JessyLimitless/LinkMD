@@ -28,6 +28,9 @@ function showContextMenu(event, type, targetId) {
       { label: '이동', icon: 'move', action: () => showMoveDocModal(targetId) },
       { label: '복제', icon: 'copy', action: () => copyDocumentAction(targetId) },
       { divider: true },
+      { label: '문서 분할', icon: 'scissors', action: () => showSplitDocModal(targetId) },
+      { label: '태그 자동 추출', icon: 'sparkles', action: () => showAutoTagModal(targetId) },
+      { divider: true },
       { label: '삭제', icon: 'trash-2', action: () => deleteDoc(targetId), danger: true },
     ];
   } else if (type === 'root') {

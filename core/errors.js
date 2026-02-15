@@ -65,6 +65,8 @@ const ERROR_CODES = {
   // Document extended (3xxx)
   DOC_FILENAME_INVALID: { code: 3005, http: 400, msg: '올바르지 않은 파일명입니다.' },
   DOC_FILENAME_DUP:     { code: 3006, http: 409, msg: '같은 이름의 파일이 이미 있습니다.' },
+  DOC_SPLIT_NO_HEADINGS:{ code: 3010, http: 400, msg: '해당 레벨의 헤딩이 없습니다.' },
+  DOC_SPLIT_TOO_FEW:    { code: 3011, http: 400, msg: '분할하려면 최소 2개의 헤딩이 필요합니다.' },
 
   // Server (9xxx)
   SERVER_PANDOC_404:    { code: 9001, http: 500, msg: 'Pandoc이 설치되어 있지 않습니다.' },

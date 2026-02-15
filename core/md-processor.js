@@ -273,6 +273,43 @@ async function mergeFiles(files, options = {}) {
   };
 }
 
+// Split markdown by heading level → [{ title, content }]
+function splitByHeading(markdown, level) {
+  const { data: frontmatterData, content: body } = matter(markdown);
+  const lines = body.split('\n');
+  const headingPrefix = '#'.repeat(level) + ' ';
+  const chunks = [];
+  let currentTitle = null;
+  let currentLines = [];
+
+  for (const line of lines) {
+    if (line.startsWith(headingPrefix) && (line.length === level || line[level] !== '#')) {
+      // Found a heading at the target level
+      if (currentTitle !== null || currentLines.length > 0) {
+        chunks.push({
+          title: currentTitle || '서문',
+          content: currentLines.join('\n').trim()
+        });
+      }
+      currentTitle = line.slice(level + 1).trim();
+      currentLines = [];
+    } else {
+      currentLines.push(line);
+    }
+  }
+
+  // Push last chunk
+  if (currentTitle !== null || currentLines.length > 0) {
+    chunks.push({
+      title: currentTitle || '서문',
+      content: currentLines.join('\n').trim()
+    });
+  }
+
+  // Filter out empty preamble
+  return chunks.filter(c => c.content || c.title !== '서문');
+}
+
 module.exports = {
   parseFilename,
   sortFiles,
@@ -285,5 +322,6 @@ module.exports = {
   countElements,
   buildHeadingTree,
   extractCodeLanguages,
-  extractImageRefs
+  extractImageRefs,
+  splitByHeading
 };

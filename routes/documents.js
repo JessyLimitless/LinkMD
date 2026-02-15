@@ -101,5 +101,43 @@ module.exports = function(archiveEngine) {
     } catch (e) { next(e); }
   });
 
+  // Get heading stats for split
+  router.get('/docs/:id/headings', async (req, res, next) => {
+    try {
+      const result = await archiveEngine.getHeadingStats(req.params.id);
+      res.json({ success: true, ...result });
+    } catch (e) { next(e); }
+  });
+
+  // Split document by heading level
+  router.post('/docs/:id/split', async (req, res, next) => {
+    try {
+      const { level, keepOriginal } = req.body;
+      const result = await archiveEngine.splitDocument(
+        req.params.id,
+        parseInt(level) || 2,
+        keepOriginal !== false
+      );
+      res.status(201).json({ success: true, ...result });
+    } catch (e) { next(e); }
+  });
+
+  // Suggest tags for document
+  router.get('/docs/:id/suggest-tags', async (req, res, next) => {
+    try {
+      const suggestions = await archiveEngine.suggestTags(req.params.id);
+      res.json({ success: true, suggestions });
+    } catch (e) { next(e); }
+  });
+
+  // Apply tags to document
+  router.post('/docs/:id/apply-tags', async (req, res, next) => {
+    try {
+      const { tags } = req.body;
+      const result = await archiveEngine.applyTags(req.params.id, tags || []);
+      res.json({ success: true, ...result });
+    } catch (e) { next(e); }
+  });
+
   return router;
 };
