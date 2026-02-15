@@ -49,6 +49,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   renderSidebar();
   renderMain();
   lucide.createIcons();
+  initSidebarMobile();
 
   // Search
   const searchInput = document.getElementById('search-input');

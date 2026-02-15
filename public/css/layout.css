@@ -292,14 +292,89 @@
   padding: 2px var(--sp-1);
 }
 
-/* ===== Responsive ===== */
+/* ===== Hamburger Button (hidden on desktop) ===== */
+.hamburger-btn {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: var(--touch-target);
+  height: var(--touch-target);
+  border: none;
+  background: none;
+  color: var(--gray-600);
+  border-radius: var(--radius-sm);
+  flex-shrink: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+.hamburger-btn:active {
+  background: var(--gray-100);
+}
+
+/* ===== Sidebar Backdrop ===== */
+.sidebar-backdrop {
+  display: none;
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.4);
+  z-index: 49;
+  -webkit-tap-highlight-color: transparent;
+}
+.sidebar-backdrop.open {
+  display: block;
+}
+
+/* ===== Responsive — Tablet ===== */
 @media (max-width: 768px) {
-  .sidebar {
-    position: absolute;
-    z-index: 50;
-    height: calc(100vh - var(--header-h));
-    box-shadow: var(--shadow-xl);
+  .hamburger-btn { display: flex; }
+
+  .header {
+    height: var(--header-h-mobile);
+    padding: 0 var(--sp-3);
+    gap: var(--sp-2);
   }
-  .sidebar.collapsed { width: 0; }
+  .header-logo { font-size: 1rem; }
   .header-search .search-kbd { display: none; }
+  .header-search input { padding: 7px 12px 7px 34px; font-size: 0.85rem; }
+  .header-actions .btn span { display: none; }
+
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: var(--sidebar-w-mobile);
+    z-index: 50;
+    height: 100vh;
+    box-shadow: var(--shadow-2xl);
+    transform: translateX(-100%);
+    transition: transform var(--duration-normal) var(--ease-out);
+    overflow-y: auto;
+  }
+  .sidebar.collapsed {
+    width: var(--sidebar-w-mobile);
+    overflow: visible;
+    transform: translateX(-100%);
+  }
+  .sidebar.mobile-open {
+    transform: translateX(0);
+  }
+
+  .content { position: relative; }
+
+  .main { padding: var(--sp-3) var(--sp-4); }
+
+  /* Touch-friendly sidebar items */
+  .sidebar-item { padding: 10px 12px; min-height: var(--touch-target); }
+  .sidebar-add-btn { padding: 10px 12px; min-height: var(--touch-target); }
+}
+
+/* ===== Responsive — Phone ===== */
+@media (max-width: 480px) {
+  .header { gap: var(--sp-1); padding: 0 var(--sp-2); }
+  .header-logo .logo-icon { display: none; }
+  .header-search { max-width: none; }
+
+  #export-btn { padding: 5px 8px; font-size: 0.75rem; }
+
+  .main { padding: var(--sp-2) var(--sp-3); }
 }

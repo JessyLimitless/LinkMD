@@ -20,10 +20,16 @@ const app = express();
 const PORT = process.env.PORT || 3500;
 const DB_PATH = process.env.DB_PATH || './data/linkmd.db';
 const STORAGE_PATH = process.env.STORAGE_PATH || './storage';
-const SHARE_BASE_URL = process.env.SHARE_BASE_URL || `http://localhost:${PORT}`;
+// SHARE_BASE_URL is now derived from request headers (see routes/share.js)
 
-// Ensure directories
-['data', 'storage/originals', 'storage/exports', 'storage/templates'].forEach(dir => {
+// Ensure directories (use configured paths, not hardcoded relative paths)
+const dbDir = path.dirname(path.resolve(DB_PATH));
+const storageDir = path.resolve(STORAGE_PATH);
+[dbDir,
+ path.join(storageDir, 'originals'),
+ path.join(storageDir, 'exports'),
+ path.join(storageDir, 'templates'),
+].forEach(dir => {
   if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
 });
 
@@ -42,7 +48,7 @@ async function start() {
   // Initialize engines
   const archiveEngine = new ArchiveEngine(db, STORAGE_PATH);
   const searchEngine = new SearchEngine(db);
-  const shareEngine = new ShareEngine(db, SHARE_BASE_URL);
+  const shareEngine = new ShareEngine(db);
   const exportEngine = new ExportEngine(STORAGE_PATH);
 
   // Routes

@@ -3,12 +3,18 @@
 const express = require('express');
 const router = express.Router();
 
+function getBaseUrl(req) {
+  const protocol = req.get('x-forwarded-proto') || req.protocol;
+  const host = req.get('x-forwarded-host') || req.get('host');
+  return `${protocol}://${host}`;
+}
+
 module.exports = function(shareEngine) {
   // Create document share link
   router.post('/doc/:id', async (req, res, next) => {
     try {
       const { expiresIn } = req.body;
-      const link = await shareEngine.createShareLink('document', req.params.id, expiresIn);
+      const link = await shareEngine.createShareLink('document', req.params.id, expiresIn, getBaseUrl(req));
       res.status(201).json({ success: true, ...link });
     } catch (e) { next(e); }
   });
@@ -17,7 +23,7 @@ module.exports = function(shareEngine) {
   router.post('/project/:id', async (req, res, next) => {
     try {
       const { expiresIn } = req.body;
-      const link = await shareEngine.createShareLink('project', req.params.id, expiresIn);
+      const link = await shareEngine.createShareLink('project', req.params.id, expiresIn, getBaseUrl(req));
       res.status(201).json({ success: true, ...link });
     } catch (e) { next(e); }
   });

@@ -63,6 +63,9 @@ function renderTreeFileHTML(file, depth) {
 }
 
 function initTreeEvents(container) {
+  // Long-press for mobile context menu
+  initLongPress(container);
+
   // Click — delegation (survives innerHTML changes)
   container.addEventListener('click', (e) => {
     const item = e.target.closest('.tree-item');

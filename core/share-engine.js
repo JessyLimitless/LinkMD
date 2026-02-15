@@ -11,12 +11,11 @@ const DURATION_MAP = {
 };
 
 class ShareEngine {
-  constructor(db, baseUrl) {
+  constructor(db) {
     this.db = db;
-    this.baseUrl = baseUrl || 'http://localhost:3500';
   }
 
-  async createShareLink(targetType, targetId, expiresIn = null) {
+  async createShareLink(targetType, targetId, expiresIn = null, baseUrl = '') {
     const id = uuidv4();
     const token = uuidv4().replace(/-/g, '').substring(0, 12);
 
@@ -33,7 +32,7 @@ class ShareEngine {
     return {
       id,
       token,
-      shareUrl: `${this.baseUrl}/s/${token}`,
+      shareUrl: `${baseUrl}/s/${token}`,
       expiresAt
     };
   }

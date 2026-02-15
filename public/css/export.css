@@ -162,3 +162,12 @@
   font-size: 0.82rem;
   background: var(--gray-50);
 }
+
+/* ===== Responsive ===== */
+@media (max-width: 768px) {
+  .export-form { grid-template-columns: 1fr; }
+  .export-submit { flex-direction: column; }
+  .export-submit .btn { width: 100%; }
+  .export-panel { padding: var(--sp-4); }
+  .modal { width: 95%; padding: var(--sp-4); }
+}

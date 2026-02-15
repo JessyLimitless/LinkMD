@@ -9,10 +9,14 @@
   <link rel="stylesheet" href="/css/share.css">
   <link rel="stylesheet" href="/css/layout.css">
   <link rel="stylesheet" href="/css/animations.css">
-  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdn.jsdelivr.net/npm/marked@15/marked.min.js"></script>
+  <script src="https://unpkg.com/lucide@0.460.0"></script>
+  <style>
+    /* Override variables.css body lock for shared page */
+    body { overflow: auto !important; height: auto !important; min-height: 100vh; }
+  </style>
 </head>
-<body style="overflow:auto">
+<body>
   <div class="shared-page">
     <div class="shared-header">
       <span class="logo"><i data-lucide="link" style="width:18px;height:18px"></i> LinkMD</span>
@@ -30,18 +34,46 @@
     const API = window.location.origin + '/api';
     const token = window.location.pathname.split('/s/')[1];
 
+    function esc(s) {
+      if (s == null) return '';
+      return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    function renderMarkdown(md) {
+      if (typeof marked !== 'undefined' && marked.parse) return marked.parse(md || '');
+      // Fallback: plain text with basic line breaks
+      return '<pre style="white-space:pre-wrap">' + esc(md || '') + '</pre>';
+    }
+
+    function initIcons() {
+      try { if (typeof lucide !== 'undefined') lucide.createIcons(); } catch (e) { /* ignore */ }
+    }
+
+    function showError(msg) {
+      document.getElementById('shared-content').innerHTML = `
+        <div class="shared-expired">
+          <div class="shared-expired-icon"><i data-lucide="link-2-off" style="width:48px;height:48px"></i></div>
+          <h3>${esc(msg)}</h3>
+          <p style="margin-top:8px;font-size:0.9rem;color:var(--gray-400)">이 공유 링크는 만료되었거나 존재하지 않습니다.</p>
+        </div>`;
+      initIcons();
+    }
+
     async function loadShared() {
+      if (!token) { showError('잘못된 공유 링크입니다.'); return; }
+
       try {
         const res = await fetch(`${API}/shared/${token}`);
+        if (!res.ok) {
+          const errData = await res.json().catch(() => ({}));
+          throw new Error(errData.error?.message || `서버 오류 (${res.status})`);
+        }
         const data = await res.json();
-        if (!res.ok) throw new Error(data.error?.message || 'Error');
-
         const container = document.getElementById('shared-content');
 
         if (data.type === 'document') {
           const doc = data.data;
-          const rendered = marked.parse(doc.content || '');
-          const esc = s => s == null ? '' : String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+          const rendered = renderMarkdown(doc.content);
           container.innerHTML = `
             <div class="shared-doc-title">${esc(doc.projectName)} / ${esc(doc.filename)}</div>
             <div class="shared-doc-body">
@@ -53,32 +85,29 @@
             </div>`;
           document.title = `${doc.title || doc.filename} — LinkMD`;
           window._sharedDoc = doc;
-          lucide.createIcons();
+          initIcons();
         } else if (data.type === 'project') {
           const proj = data.data;
           container.innerHTML = `
-            <h2 style="margin-bottom:16px;display:flex;align-items:center;gap:8px"><i data-lucide="folder" style="width:22px;height:22px;color:var(--brand)"></i> ${proj.name}</h2>
-            <p style="color:var(--gray-500);margin-bottom:16px">${proj.description || ''} — ${proj.doc_count || 0}개 문서</p>
+            <h2 style="margin-bottom:16px;display:flex;align-items:center;gap:8px"><i data-lucide="folder" style="width:22px;height:22px;color:var(--brand)"></i> ${esc(proj.name)}</h2>
+            <p style="color:var(--gray-500);margin-bottom:16px">${esc(proj.description || '')} — ${proj.doc_count || 0}개 문서</p>
             <div class="shared-project-cards">
               ${(proj.documents || []).map(d => `
-                <div class="shared-project-card" onclick="loadSharedDoc('${d.id}')">
-                  <div style="font-weight:600;margin-bottom:4px;display:flex;align-items:center;gap:6px"><i data-lucide="file-text" style="width:14px;height:14px;color:var(--gray-400)"></i> ${d.title || d.filename}</div>
-                  <div style="font-size:0.78rem;color:var(--gray-400);font-family:var(--font-mono)">${d.filename}</div>
+                <div class="shared-project-card" onclick="loadSharedDoc('${esc(d.id)}')">
+                  <div style="font-weight:600;margin-bottom:4px;display:flex;align-items:center;gap:6px"><i data-lucide="file-text" style="width:14px;height:14px;color:var(--gray-400)"></i> ${esc(d.title || d.filename)}</div>
+                  <div style="font-size:0.78rem;color:var(--gray-400);font-family:var(--font-mono)">${esc(d.filename)}</div>
                   <div style="font-size:0.75rem;color:var(--gray-400);margin-top:6px">H:${d.heading_count||0} C:${d.code_block_count||0}</div>
                 </div>
               `).join('')}
             </div>`;
           document.title = `${proj.name} — LinkMD`;
-          lucide.createIcons();
+          initIcons();
+        } else {
+          showError('알 수 없는 공유 형식입니다.');
         }
       } catch (e) {
-        document.getElementById('shared-content').innerHTML = `
-          <div class="shared-expired">
-            <div class="shared-expired-icon"><i data-lucide="link-2-off" style="width:48px;height:48px"></i></div>
-            <h3>${e.message}</h3>
-            <p style="margin-top:8px;font-size:0.9rem;color:var(--gray-400)">이 공유 링크는 만료되었거나 존재하지 않습니다.</p>
-          </div>`;
-        lucide.createIcons();
+        console.error('[shared] load error:', e);
+        showError(e.message || '공유 문서를 불러오지 못했습니다.');
       }
     }
 
@@ -86,18 +115,23 @@
       try {
         const res = await fetch(`${API}/docs/${docId}`);
         const doc = await res.json();
-        const rendered = marked.parse(doc.content || '');
+        const rendered = renderMarkdown(doc.content);
         document.getElementById('shared-content').innerHTML = `
           <div class="shared-doc-title" style="cursor:pointer;display:flex;align-items:center;gap:6px" onclick="loadShared()"><i data-lucide="arrow-left" style="width:14px;height:14px"></i> 돌아가기</div>
           <div class="shared-doc-body"><div class="md-render">${rendered}</div></div>`;
-        lucide.createIcons();
-      } catch {}
+        initIcons();
+      } catch (e) {
+        console.error('[shared] loadDoc error:', e);
+        showError('문서를 불러오지 못했습니다.');
+      }
     }
 
     function copyMD() {
       if (window._sharedDoc) {
-        navigator.clipboard.writeText(window._sharedDoc.content);
-        alert('MD 내용이 복사되었습니다');
+        navigator.clipboard.writeText(window._sharedDoc.content).then(
+          () => alert('MD 내용이 복사되었습니다'),
+          () => alert('복사에 실패했습니다. 수동으로 복사해주세요.')
+        );
       }
     }
 
@@ -112,7 +146,7 @@
     }
 
     loadShared();
-    lucide.createIcons();
+    initIcons();
   </script>
 </body>
 </html>

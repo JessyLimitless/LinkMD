@@ -95,6 +95,11 @@
 
   /* Focus ring */
   --focus-ring: 0 0 0 2px var(--brand-bg), 0 0 0 4px var(--brand-300);
+
+  /* Mobile */
+  --touch-target: 44px;
+  --sidebar-w-mobile: 280px;
+  --header-h-mobile: 48px;
 }
 
 /* Reset */

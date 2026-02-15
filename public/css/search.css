@@ -117,3 +117,16 @@
   color: var(--gray-400);
   flex-shrink: 0;
 }
+
+/* ===== Responsive ===== */
+@media (max-width: 768px) {
+  .search-results { max-width: 100%; }
+  .search-result-item { padding: var(--sp-3) var(--sp-4); }
+  .search-result-item .result-snippet { font-size: 0.82rem; }
+}
+
+@media (max-width: 480px) {
+  .search-result-item { padding: var(--sp-3); }
+  .search-result-item .result-header { flex-wrap: wrap; }
+  .search-result-item .result-meta .date { margin-left: 0; }
+}

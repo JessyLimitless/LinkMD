@@ -676,3 +676,56 @@
   background: rgba(0, 242, 255, 0.15);
   border-color: rgba(0, 242, 255, 0.4);
 }
+
+/* ===== Responsive — Tablet ===== */
+@media (max-width: 768px) {
+  .universe-header { padding: 10px 16px; }
+  .universe-title { font-size: 0.95rem; letter-spacing: 1px; }
+  .universe-legend { display: none; }
+
+  /* Cockpit → bottom sheet */
+  .ucockpit {
+    top: auto;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    height: 45vh;
+    border-right: none;
+    border-top: 1px solid rgba(0, 242, 255, 0.15);
+    border-radius: 16px 16px 0 0;
+    transform: translateY(0);
+    transition: height 0.3s var(--ease-out), opacity 0.3s ease;
+  }
+  .ucockpit.closed {
+    width: 100%;
+    height: 0;
+  }
+  .ucockpit.open {
+    width: 100%;
+    height: 45vh;
+  }
+  .ucockpit-float-btn {
+    top: auto;
+    bottom: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+
+  /* Detail panel → fullscreen slide */
+  .udetail {
+    top: 0;
+    right: -100%;
+    width: 100%;
+    bottom: 0;
+  }
+  .udetail.open { right: 0; }
+}
+
+/* ===== Responsive — Phone ===== */
+@media (max-width: 480px) {
+  .universe-header { padding: 8px 12px; }
+  .universe-title { font-size: 0.82rem; }
+  .universe-back-btn { padding: 5px 10px; font-size: 0.75rem; }
+  .udetail-body { padding: 16px; }
+}

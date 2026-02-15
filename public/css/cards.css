@@ -238,3 +238,22 @@
   font-size: 0.85rem;
   color: var(--gray-400);
 }
+
+/* ===== Responsive — Tablet ===== */
+@media (max-width: 768px) {
+  .workspace-header { gap: var(--sp-2); }
+  .workspace-actions { flex-wrap: wrap; }
+  .filter-bar { overflow-x: auto; flex-wrap: nowrap; -webkit-overflow-scrolling: touch; padding-bottom: var(--sp-1); }
+  .card-grid { grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: var(--sp-2); }
+  .doc-card .card-checkbox { opacity: 1; }
+  .upload-zone { padding: var(--sp-6) var(--sp-3); }
+}
+
+/* ===== Responsive — Phone ===== */
+@media (max-width: 480px) {
+  .workspace-header { flex-direction: column; align-items: flex-start; }
+  .workspace-actions { width: 100%; }
+  .card-grid { grid-template-columns: 1fr; }
+  .doc-card { padding: var(--sp-3); }
+  .empty-state { padding: var(--sp-8) var(--sp-3); }
+}

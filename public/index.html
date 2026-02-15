@@ -2,7 +2,10 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <title>LinkMD — MD Knowledge Archive</title>
   <link rel="stylesheet" href="css/variables.css">
   <link rel="stylesheet" href="css/layout.css">
@@ -24,6 +27,9 @@
   <div class="app">
     <!-- Header -->
     <header class="header">
+      <button class="hamburger-btn" id="hamburger-btn" onclick="toggleSidebarMobile()" aria-label="메뉴">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </button>
       <div class="header-logo" onclick="toggleSidebar()">
         <span class="logo-icon"><i data-lucide="link" style="width:20px;height:20px"></i></span> LinkMD
       </div>
@@ -81,6 +87,7 @@
           <div id="stats-section"></div>
         </div>
       </aside>
+      <div class="sidebar-backdrop" id="sidebar-backdrop" onclick="closeSidebarMobile()"></div>
 
       <!-- Main -->
       <main class="main" id="main"></main>

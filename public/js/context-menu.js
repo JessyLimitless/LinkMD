@@ -1,5 +1,53 @@
 'use strict';
 
+let _longPressTimer = null;
+let _longPressTriggered = false;
+
+function initLongPress(container) {
+  container.addEventListener('touchstart', (e) => {
+    const item = e.target.closest('.tree-item');
+    if (!item) return;
+
+    _longPressTriggered = false;
+    const touch = e.touches[0];
+    const startX = touch.clientX;
+    const startY = touch.clientY;
+
+    _longPressTimer = setTimeout(() => {
+      _longPressTriggered = true;
+      // Vibration feedback
+      if (navigator.vibrate) navigator.vibrate(30);
+      const type = item.dataset.type;
+      const id = item.dataset.id;
+      showContextMenu({ clientX: startX, clientY: startY }, type || 'root', id);
+    }, 500);
+  }, { passive: true });
+
+  container.addEventListener('touchmove', (e) => {
+    // Cancel long press if finger moves too far
+    if (_longPressTimer) {
+      clearTimeout(_longPressTimer);
+      _longPressTimer = null;
+    }
+  }, { passive: true });
+
+  container.addEventListener('touchend', () => {
+    if (_longPressTimer) {
+      clearTimeout(_longPressTimer);
+      _longPressTimer = null;
+    }
+  }, { passive: true });
+
+  // Prevent click right after long press
+  container.addEventListener('click', (e) => {
+    if (_longPressTriggered) {
+      e.preventDefault();
+      e.stopPropagation();
+      _longPressTriggered = false;
+    }
+  }, true);
+}
+
 function showContextMenu(event, type, targetId) {
   closeContextMenu();
 
@@ -61,12 +109,20 @@ function showContextMenu(event, type, targetId) {
   // Position
   document.body.appendChild(menu);
   const rect = menu.getBoundingClientRect();
-  let x = event.clientX;
-  let y = event.clientY;
-  if (x + rect.width > window.innerWidth) x = window.innerWidth - rect.width - 4;
-  if (y + rect.height > window.innerHeight) y = window.innerHeight - rect.height - 4;
-  menu.style.left = x + 'px';
-  menu.style.top = y + 'px';
+
+  if (isMobile() && window.innerWidth <= 480) {
+    // Phone: bottom-center via CSS (see tree-view.css @media 480px)
+    // Just ensure it's visible
+    menu.style.left = '';
+    menu.style.top = '';
+  } else {
+    let x = event.clientX;
+    let y = event.clientY;
+    if (x + rect.width > window.innerWidth) x = window.innerWidth - rect.width - 4;
+    if (y + rect.height > window.innerHeight) y = window.innerHeight - rect.height - 4;
+    menu.style.left = x + 'px';
+    menu.style.top = y + 'px';
+  }
 
   // Close on click outside
   setTimeout(() => {
