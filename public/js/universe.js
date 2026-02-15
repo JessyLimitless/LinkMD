@@ -157,6 +157,69 @@ function _createStarfield() {
   return new THREE.Points(geometry, material);
 }
 
+/* ── Label Sprite (Canvas → Texture → Sprite) ── */
+
+function _createLabelSprite(text, fontSize, yOffset) {
+  const THREE = window.THREE;
+  const canvas = document.createElement('canvas');
+  const ctx = canvas.getContext('2d');
+
+  // Truncate long labels
+  const label = text.length > 15 ? text.slice(0, 14) + '…' : text;
+
+  const font = `bold ${fontSize}px sans-serif`;
+  ctx.font = font;
+  const metrics = ctx.measureText(label);
+  const textWidth = metrics.width;
+
+  const padding = fontSize * 0.5;
+  const cw = textWidth + padding * 2;
+  const ch = fontSize * 1.6;
+  canvas.width = cw;
+  canvas.height = ch;
+
+  // Background rounded rect
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.55)';
+  const r = fontSize * 0.3;
+  ctx.beginPath();
+  ctx.moveTo(r, 0);
+  ctx.lineTo(cw - r, 0);
+  ctx.quadraticCurveTo(cw, 0, cw, r);
+  ctx.lineTo(cw, ch - r);
+  ctx.quadraticCurveTo(cw, ch, cw - r, ch);
+  ctx.lineTo(r, ch);
+  ctx.quadraticCurveTo(0, ch, 0, ch - r);
+  ctx.lineTo(0, r);
+  ctx.quadraticCurveTo(0, 0, r, 0);
+  ctx.closePath();
+  ctx.fill();
+
+  // Text
+  ctx.font = font;
+  ctx.fillStyle = '#ffffff';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(label, cw / 2, ch / 2);
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.needsUpdate = true;
+
+  const material = new THREE.SpriteMaterial({
+    map: texture,
+    transparent: true,
+    depthWrite: false
+  });
+  const sprite = new THREE.Sprite(material);
+
+  // Scale: maintain aspect ratio
+  const aspect = cw / ch;
+  const baseScale = fontSize === 40 ? 12 : fontSize === 32 ? 8 : 6;
+  sprite.scale.set(baseScale * aspect, baseScale, 1);
+  sprite.position.set(0, yOffset, 0);
+
+  return sprite;
+}
+
 /* ── Custom Node Three Object (Glow Effect) ── */
 
 function _createNodeObject(node) {
@@ -210,6 +273,19 @@ function _createNodeObject(node) {
   group.__glowMat = glowMat;
   group.__origOpacity = 0.95;
   group.__origGlowOpacity = 0.12;
+
+  // Text label sprite
+  let labelFontSize, labelYOffset;
+  if (node.type === 'project') {
+    labelFontSize = 40; labelYOffset = radius + 6;
+  } else if (node.type === 'document') {
+    labelFontSize = 32; labelYOffset = radius + 4;
+  } else {
+    labelFontSize = 28; labelYOffset = radius + 3;
+  }
+  const labelSprite = _createLabelSprite(node.label || '', labelFontSize, labelYOffset);
+  group.add(labelSprite);
+  group.__labelSprite = labelSprite;
 
   return group;
 }
@@ -674,25 +750,32 @@ function _applyNodeVisuals() {
     const obj = n.__threeObj;
     if (!obj || !obj.__coreMat) return;
 
+    let coreOpacity, glowOpacity;
     if (hl.hoveredNode) {
       if (n.id === hl.hoveredNode.id || hl.connectedNodes.has(n.id)) {
-        obj.__coreMat.opacity = 1.0;
-        obj.__glowMat.opacity = 0.2;
+        coreOpacity = 1.0;
+        glowOpacity = 0.2;
       } else {
-        obj.__coreMat.opacity = 0.08;
-        obj.__glowMat.opacity = 0.01;
+        coreOpacity = 0.08;
+        glowOpacity = 0.01;
       }
     } else if (f.activeNodeIds) {
       if (f.activeNodeIds.has(n.id)) {
-        obj.__coreMat.opacity = obj.__origOpacity;
-        obj.__glowMat.opacity = obj.__origGlowOpacity;
+        coreOpacity = obj.__origOpacity;
+        glowOpacity = obj.__origGlowOpacity;
       } else {
-        obj.__coreMat.opacity = 0.08;
-        obj.__glowMat.opacity = 0.01;
+        coreOpacity = 0.08;
+        glowOpacity = 0.01;
       }
     } else {
-      obj.__coreMat.opacity = obj.__origOpacity;
-      obj.__glowMat.opacity = obj.__origGlowOpacity;
+      coreOpacity = obj.__origOpacity;
+      glowOpacity = obj.__origGlowOpacity;
+    }
+
+    obj.__coreMat.opacity = coreOpacity;
+    obj.__glowMat.opacity = glowOpacity;
+    if (obj.__labelSprite) {
+      obj.__labelSprite.material.opacity = coreOpacity;
     }
   });
 }
