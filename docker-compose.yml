@@ -1,0 +1,26 @@
+version: "3.8"
+
+services:
+  linkmd:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: always
+    ports:
+      - 3500
+    environment:
+      - PORT=3500
+      - NODE_ENV=production
+    volumes:
+      - linkmd-data:/app/data
+      - linkmd-storage:/app/storage
+    networks:
+      - dokploy-network
+
+volumes:
+  linkmd-data:
+  linkmd-storage:
+
+networks:
+  dokploy-network:
+    external: true
