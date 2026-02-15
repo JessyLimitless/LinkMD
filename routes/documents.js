@@ -54,7 +54,7 @@ module.exports = function(archiveEngine) {
   router.get('/docs/:id/raw', async (req, res, next) => {
     try {
       const doc = await archiveEngine.getDocumentRaw(req.params.id);
-      res.type('text/markdown').send(doc.content);
+      res.type('text/markdown; charset=utf-8').send(doc.content);
     } catch (e) { next(e); }
   });
 

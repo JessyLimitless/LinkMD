@@ -85,12 +85,21 @@ class ArchiveEngine {
     let totalSize = 0;
 
     for (const file of files) {
-      if (file.originalname.toLowerCase().endsWith('.zip')) {
-        const zipResults = await this._processZip(projectId, file, folderId);
+      // Decode filename: multer v1 (busboy v0) gives latin1-encoded names,
+      // but multer v2 (busboy v1+) already decodes UTF-8 correctly.
+      // Only apply latin1→utf8 conversion when all chars are ≤ 0xFF (latin1 range).
+      let filename = file.originalname;
+      const isLatin1 = [...filename].every(ch => ch.charCodeAt(0) <= 0xFF);
+      if (isLatin1) {
+        try { filename = Buffer.from(filename, 'latin1').toString('utf-8'); } catch {}
+      }
+
+      if (filename.toLowerCase().endsWith('.zip')) {
+        const zipResults = await this._processZip(projectId, { ...file, originalname: filename }, folderId);
         archived.push(...zipResults);
         totalSize += zipResults.reduce((sum, r) => sum + (r.fileSize || 0), 0);
-      } else if (file.originalname.toLowerCase().endsWith('.md')) {
-        const result = await this._archiveSingleMD(projectId, file.originalname, file.buffer, folderId);
+      } else if (filename.toLowerCase().endsWith('.md')) {
+        const result = await this._archiveSingleMD(projectId, filename, file.buffer, folderId);
         archived.push(result);
         totalSize += result.fileSize || 0;
       }
